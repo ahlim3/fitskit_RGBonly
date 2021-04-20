@@ -250,7 +250,7 @@ extension AnyImageHDU {
         
         var image : CGImage?
         if channels == 2 {
-            image = vMONO_Complete(&dat, width: width, height: height, bscale: bscale, bzero: bzero, bitpix)
+            image = vMONO(&dat, width: width, height: height, bscale: bscale, bzero: bzero, bitpix)
 
         } else  if channels == 3 {
             image = vRGB(&dat, width: width, height: height, bscale: bscale, bzero: bzero, bitpix)
