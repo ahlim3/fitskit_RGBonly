@@ -31,10 +31,12 @@ extension AnyImageHDU {
     func vMONO(_ data: inout DataUnit,  width: Int, height: Int, bscale: Float, bzero: Float, _ bitpix: BITPIX) -> CGImage? {
         
         var converted = FITSByteTool.normalize_F(&data, width: width, height: height, bscale: bscale, bzero: bzero, bitpix)
+        /*
         var imagemultiplier = converted.reduce(0,+) / Float(converted.count) * Float(65535.0)
         for item in 0 ..< converted.count{
             converted[item] = converted[item] * imagemultiplier
         }
+        */
         let layerBytes = width * height * FITSByte_F.bytes
         let rowBytes = width * FITSByte_F.bytes
         
