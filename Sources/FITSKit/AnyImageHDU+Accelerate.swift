@@ -53,7 +53,14 @@ extension AnyImageHDU {
     }
     func v_data(_ data: inout DataUnit,  width: Int, height: Int, bscale: Float, bzero: Float, _ bitpix: BITPIX) -> [FITSByte_F]? {
         
-        let converted = FITSByteTool.normalize_F(&data, width: width, height: height, bscale: bscale, bzero: bzero, bitpix)
+        var converted = FITSByteTool.normalize_F(&data, width: width, height: height, bscale: bscale, bzero: bzero, bitpix)
+        let Max = converted.max()!
+        let Min = converted.min()!
+        let factor = 1.0 / (Max - Min)
+        let count = converted.count
+        for item in 0 ..< count{
+            converted[item] = converted[item] * factor
+        }
         return converted
     }
     func vMONO_format(_ data: inout DataUnit,  width: Int, height: Int, bscale: Float, bzero: Float, _ bitpix: BITPIX) -> vImage_CGImageFormat? {
@@ -65,7 +72,6 @@ extension AnyImageHDU {
         for item in 0 ..< count{
             converted[item] = converted[item] * factor
         }
-        print(converted.max()!)
         let layerBytes = width * height * FITSByte_F.bytes
         let rowBytes = width * FITSByte_F.bytes
         
