@@ -84,6 +84,7 @@ extension AnyImageHDU {
         for item in 0 ..< count{
             converted[item] = converted[item] * factor
         }
+        print(converted.max()!)
         let layerBytes = width * height * FITSByte_F.bytes
         let rowBytes = width * FITSByte_F.bytes
         
