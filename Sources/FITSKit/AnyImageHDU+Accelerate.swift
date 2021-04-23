@@ -79,9 +79,11 @@ extension AnyImageHDU {
         var converted = FITSByteTool.normalize_F(&data, width: width, height: height, bscale: bscale, bzero: bzero, bitpix)
         let Max = converted.max()!
         let Min = converted.min()!
-        var factor = 1.0 / (Max - Min)
-        print(factor)
-        
+        let factor = 1.0 / (Max - Min)
+        let count = converted.count
+        for item in 0 ..< count{
+            converted[item] = converted[item] * factor
+        }
         let layerBytes = width * height * FITSByte_F.bytes
         let rowBytes = width * FITSByte_F.bytes
         
