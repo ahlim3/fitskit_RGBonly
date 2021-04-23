@@ -57,15 +57,17 @@ extension AnyImageHDU {
         return converted
     }
     func vMONO_format(_ data: inout DataUnit,  width: Int, height: Int, bscale: Float, bzero: Float, _ bitpix: BITPIX) -> vImage_CGImageFormat? {
-        
         var converted = FITSByteTool.normalize_F(&data, width: width, height: height, bscale: bscale, bzero: bzero, bitpix)
-        
+        let Max = converted.max()!
+        let Min = converted.min()!
+        let factor = 1.0 / (Max - Min)
+        let count = converted.count
+        for item in 0 ..< count{
+            converted[item] = converted[item] * factor
+        }
+        print(converted.max()!)
         let layerBytes = width * height * FITSByte_F.bytes
         let rowBytes = width * FITSByte_F.bytes
-        
-        let gray = converted.withUnsafeMutableBytes{ mptr8 in
-            vImage_Buffer(data: mptr8.baseAddress?.advanced(by: layerBytes * 0).bindMemory(to: FITSByte_F.self, capacity: width * height), height: vImagePixelCount(height), width: vImagePixelCount(width), rowBytes: rowBytes)
-        }
         
         var finfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue)
         finfo.insert(CGBitmapInfo(rawValue: CGBitmapInfo.byteOrder32Little.rawValue))
