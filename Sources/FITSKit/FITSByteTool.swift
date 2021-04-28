@@ -58,11 +58,11 @@ public struct FITSByteTool {
         switch bitpix {
         case .UINT8:
             return data.withUnsafeBytes { mptr8 in
-                mptr8.bindMemory(to: FITSByte_8.self).map{ $0.bigEndian.normalize(bzero, bscale, .min, .max) }
+                mptr8.bindMemory(to: FITSByte_8.self).map{ $0.bigEndian.normalize(bzero, bscale, .min, .max) / 255.0}
             }
         case .INT16:
             return data.withUnsafeBytes { mptr8 in
-                mptr8.bindMemory(to: FITSByte_16.self).map{ $0.bigEndian.normalize(bzero, bscale, .min, .max) }
+                mptr8.bindMemory(to: FITSByte_16.self).map{ $0.bigEndian.normalize(bzero, bscale, .min, .max) / Float(65535.0)}
             }
         case .INT32:
             return data.withUnsafeBytes { mptr8 in
