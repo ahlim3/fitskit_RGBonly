@@ -214,7 +214,45 @@ extension AnyImageHDU {
         let rgbFormat = vImage_CGImageFormat(bitsPerComponent: FITSByte_F.bits, bitsPerPixel: FITSByte_F.bits * 3, colorSpace: CGColorSpaceCreateDeviceRGB(), bitmapInfo: finfo)!
         return rgbFormat
     }
-    
+    func vRGB_Complete(_ data: inout DataUnit, layer: (Int,Int,Int) = (0,1,2),  width: Int, height: Int, bscale: Float, bzero: Float, _ bitpix: BITPIX) -> ([FITSByte_F],vImage_Buffer,vImage_CGImageFormat) {
+        
+        var converted = FITSByteTool.normalize_F(&data, width: width, height: height, bscale: bscale, bzero: bzero, bitpix)
+        
+        let Max = converted.max()!
+        let Min = converted.min()!
+        let factor = 1.0 / (Max - Min)
+        let count = converted.count
+        for item in 0 ..< count{
+            converted[item] = converted[item] * factor
+        }
+        let layerBytes = width * height * FITSByte_F.bytes
+        let rowBytes = width * FITSByte_F.bytes
+        
+        var red = converted.withUnsafeMutableBytes{ mptr8 in
+            vImage_Buffer(data: mptr8.baseAddress?.advanced(by: layerBytes * layer.0).bindMemory(to: FITSByte_F.self, capacity: width * height), height: vImagePixelCount(height), width: vImagePixelCount(width), rowBytes: rowBytes)
+        }
+        
+        var green = converted.withUnsafeMutableBytes{ mptr8 in
+            vImage_Buffer(data: mptr8.baseAddress?.advanced(by: layerBytes * layer.1).bindMemory(to: FITSByte_F.self, capacity: width * height), height: vImagePixelCount(height), width: vImagePixelCount(width), rowBytes: rowBytes)
+        }
+        
+        var blue = converted.withUnsafeMutableBytes{ mptr8 in
+            vImage_Buffer(data: mptr8.baseAddress?.advanced(by: layerBytes * layer.2).bindMemory(to: FITSByte_F.self, capacity: width * height), height: vImagePixelCount(height), width: vImagePixelCount(width), rowBytes: rowBytes)
+        }
+        
+        var outBuffer = try! vImage_Buffer(width: width, height: height, bitsPerPixel: UInt32(FITSByte_F.bits * 3))
+        defer{
+            outBuffer.free()
+        }
+        
+        vImageConvert_PlanarFtoRGBFFF(&red, &green, &blue, &outBuffer, vImage_Flags(kvImageNoFlags))
+        
+        var finfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue)
+        finfo.insert(CGBitmapInfo(rawValue: CGBitmapInfo.byteOrder32Little.rawValue))
+        finfo.insert(CGBitmapInfo(rawValue: CGBitmapInfo.floatComponents.rawValue))
+        let rgbFormat = vImage_CGImageFormat(bitsPerComponent: FITSByte_F.bits, bitsPerPixel: FITSByte_F.bits * 3, colorSpace: CGColorSpaceCreateDeviceRGB(), bitmapInfo: finfo)!
+        return (converted, outBuffer, rgbFormat)
+    }
 
     public func v_cgimage(onError: ((Error) -> Void)?, onCompletion: @escaping (CGImage) -> Void) {
         
@@ -383,7 +421,7 @@ extension AnyImageHDU {
             data = vMONO_Complete(&dat, width: width, height: height, bscale: bscale, bzero: bzero, bitpix)
             
         } else  if channels == 3 {
-            data = vMONO_Complete(&dat, width: width, height: height, bscale: bscale, bzero: bzero, bitpix)
+            data = vRGB_Complete(&dat, width: width, height: height, bscale: bscale, bzero: bzero, bitpix)
         }
         
         if let data = data{
