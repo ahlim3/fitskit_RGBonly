@@ -107,9 +107,11 @@ extension AnyImageHDU {
         let Min = converted.min()!
         let factor = 1.0 / (Max - Min)
         let count = converted.count
+        /*
         for item in 0 ..< count{
             converted[item] = converted[item] * factor
         }
+ */
         let layerBytes = width * height * FITSByte_F.bytes
         let rowBytes = width * FITSByte_F.bytes
         let gray = converted.withUnsafeMutableBytes{ mptr8 in
